@@ -4,8 +4,8 @@
  */
 
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/functions.php';
 
-// Set JSON header for AJAX requests if requested
 $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') 
           || (isset($_POST['action']) && $_POST['action'] === 'update_progress');
 
@@ -26,6 +26,7 @@ switch ($action) {
     case 'create_project':
         $title            = trim($_POST['title'] ?? '');
         $categoryId       = (int)($_POST['category_id'] ?? 1);
+        $buId             = !empty($_POST['bu_id']) ? (int)$_POST['bu_id'] : null;
         $priority         = $_POST['priority'] ?? 'Medium';
         $ownerName        = trim($_POST['owner_name'] ?? '');
         $targetDate       = $_POST['target_completion_date'] ?? date('Y-m-d');
@@ -35,11 +36,12 @@ switch ($action) {
         $startDate        = date('Y-m-d');
 
         if ($title && $ownerName) {
-            $stmt = $db->prepare("INSERT INTO projects (title, category_id, priority, owner_name, start_date, target_completion_date, description, needs_attention, attention_reason, status) 
-                                  VALUES (:title, :category_id, :priority, :owner_name, :start_date, :target_date, :description, :needs_attention, :attention_reason, :status)");
+            $stmt = $db->prepare("INSERT INTO projects (title, category_id, bu_id, priority, owner_name, start_date, target_completion_date, description, needs_attention, attention_reason, status) 
+                                  VALUES (:title, :category_id, :bu_id, :priority, :owner_name, :start_date, :target_date, :description, :needs_attention, :attention_reason, :status)");
             $stmt->execute([
                 'title'            => $title,
                 'category_id'      => $categoryId,
+                'bu_id'            => $buId,
                 'priority'         => $priority,
                 'owner_name'       => $ownerName,
                 'start_date'       => $startDate,
@@ -51,6 +53,18 @@ switch ($action) {
             ]);
             $newId = $db->lastInsertId();
             header("Location: project_detail.php?id=" . $newId);
+            exit;
+        }
+        break;
+
+    case 'add_daily_log':
+        $projectId = (int)($_POST['project_id'] ?? 0);
+        $logText   = trim($_POST['log_text'] ?? '');
+        $isBlocked = isset($_POST['is_blocked']) ? 1 : 0;
+
+        if ($projectId > 0 && !empty($logText)) {
+            addDailyLog($projectId, $logText, $isBlocked);
+            header("Location: project_detail.php?id=" . $projectId . "&msg=log_added");
             exit;
         }
         break;

@@ -31,12 +31,15 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Priority</label>
-          <select name="priority" class="form-select" style="width: 100%;">
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-            <option value="High">High</option>
-            <option value="Critical">Critical</option>
+          <label class="form-label">Business Unit (BU)</label>
+          <select name="bu_id" class="form-select" style="width: 100%;">
+            <option value="">Select BU...</option>
+            <?php 
+              $bus = getBusinessUnits();
+              foreach ($bus as $bu): 
+            ?>
+              <option value="<?= $bu['id'] ?>"><?= htmlspecialchars($bu['name']) ?> (<?= $bu['code'] ?>)</option>
+            <?php endforeach; ?>
           </select>
         </div>
       </div>

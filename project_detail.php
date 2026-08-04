@@ -317,4 +317,51 @@ $priorityClass = getPriorityBadgeClass($project['priority']);
   </div>
 </div>
 
+<!-- Panel: Daily Updates Log History -->
+    <div class="panel-card" style="margin-top: 1.5rem;">
+      <div class="panel-title">
+        <span>Daily Progress Updates</span>
+      </div>
+
+      <!-- Quick Add Daily Log Form -->
+      <form action="api.php" method="POST" style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; align-items: center;">
+        <input type="hidden" name="action" value="add_daily_log">
+        <input type="hidden" name="project_id" value="<?= $project['id'] ?>">
+        
+        <input type="text" name="log_text" class="form-input" style="flex: 1;" placeholder="Log today's progress or update..." required>
+        
+        <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.85rem; color: #f87171; cursor: pointer; white-space: nowrap;">
+          <input type="checkbox" name="is_blocked" value="1"> Flag Blocker
+        </label>
+
+        <button type="submit" class="btn-primary-action" style="padding: 0.55rem 1rem;">Post Log</button>
+      </form>
+
+      <!-- Logs Timeline -->
+      <?php
+        $db = getDBConnection();
+        $stmtLogs = $db->prepare("SELECT * FROM daily_logs WHERE project_id = :pid ORDER BY created_at DESC LIMIT 10");
+        $stmtLogs->execute(['pid' => $project['id']]);
+        $dailyLogs = $stmtLogs->fetchAll();
+      ?>
+
+      <?php if (empty($dailyLogs)): ?>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">No daily update notes logged yet for this project.</p>
+      <?php else: ?>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <?php foreach ($dailyLogs as $log): ?>
+            <div style="padding: 0.75rem 1rem; background: rgba(15, 23, 42, 0.4); border-radius: var(--radius-md); border-left: 3px solid <?= $log['is_blocked'] ? '#f87171' : '#6366f1' ?>;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+                <span>Logged on: <?= date('M d, Y H:i', strtotime($log['created_at'])) ?></span>
+                <?php if ($log['is_blocked']): ?>
+                  <span class="badge badge-danger">BLOCKER REPORTED</span>
+                <?php endif; ?>
+              </div>
+              <div style="font-size: 0.9rem; color: var(--text-main);"><?= htmlspecialchars($log['log_text']) ?></div>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+    </div>
+
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
