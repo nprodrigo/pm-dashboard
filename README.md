@@ -1,80 +1,97 @@
-# ProjectPulse - Project Progress & Pendings Tracking Dashboard (PHP & MySQL)
+Here is an updated **`README.md`** file that reflects your expanded architecture, including **Business Units (BUs)**, **Daily Updates/Logs**, **Weekly Executive Reporting**, and the updated high-contrast light-slate UI.
 
-A modern executive dashboard built with **PHP** and **MySQL** to manage and track multiple project streams:
+You can replace your current `README.md` with the following content:
+
+```markdown
+# ProjectPulse - Multi-BU Project Tracker & Daily Update System
+
+A modern, executive project management dashboard built with **PHP** and **MySQL** to manage, track, and log daily updates across multiple **Business Units (BUs)** and project categories:
 - 🚀 **Software Development**
 - 📦 **Software Implementation**
 - 🖥️ **Infrastructure Upgrades**
 - 📄 **Documentation Projects**
 
-Designed specifically to answer two critical management questions at a glance:
+Designed to answer critical management questions at a glance:
 1. **"What finishes when?"** (Chronological target completion timeline & milestone roadmap)
 2. **"What needs my attention?"** (Active project blockers, delayed deliverables, and urgent action items)
+3. **"What happened this week?"** (Automated weekly status rollups for management across all Business Units)
 
 ---
 
-## 🛠️ Remote MySQL & Server Architecture
+## 🛠️ Tech Stack & Server Architecture
 
-This application supports both local and **remote MySQL database hosting** (where the PHP application web server and MySQL database reside on separate machines).
+- **Backend:** PHP 8.x (PDO MySQL extension required)
+- **Database:** MySQL 5.7+ / MySQL 8.0+ / MariaDB (Supports both local and remote hosting)
+- **Frontend:** Vanilla JS (`app.js`), FontAwesome 6, and a clean, high-contrast Slate CSS UI framework
 
 ### Database Configuration (`config/database.php`)
 
-Adjust the connection settings in `config/database.php` or pass environment variables to your PHP runtime:
+Connection settings can be configured directly in `config/database.php` or passed via environment variables:
 
 ```php
-define('DB_HOST', getenv('DB_HOST') ?: 'your-remote-db-server.com'); // IP address or hostname of remote MySQL server
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_PORT', getenv('DB_PORT') ?: '3306');
 define('DB_NAME', getenv('DB_NAME') ?: 'project_tracker');
 define('DB_USER', getenv('DB_USER') ?: 'db_username');
 define('DB_PASS', getenv('DB_PASS') ?: 'db_password');
+
 ```
 
 ---
 
 ## 🚀 Quickstart Setup Instructions
 
-### Step 1: Import Database Schema into Remote MySQL
+### Step 1: Import Database Schema & Migration
 
-Using MySQL CLI from your local or PHP server:
+Import `sql/schema.sql` (or run `update_schema.sql`) into your MySQL server via **phpMyAdmin**, **MySQL Workbench**, or the CLI:
+
 ```bash
-mysql -h <REMOTE_DB_HOST> -u <DB_USER> -p < sql/schema.sql
+mysql -h <DB_HOST> -u <DB_USER> -p project_tracker < sql/schema.sql
+
 ```
-*Or import `sql/schema.sql` via **phpMyAdmin**, **MySQL Workbench**, or **DBeaver**.*
 
-### Step 2: Configure Web Server / Run PHP
+### Step 2: Configure Web Server
 
-#### Option A: PHP Built-in Server (Local or Server CLI)
-Navigate to the `project-tracker` directory and start the server:
+#### Option A: PHP Built-in Server (Local CLI)
+
+Navigate to the project root directory and run:
+
 ```bash
-cd project-tracker
 php -S 0.0.0.0:8000
+
 ```
-Open `http://localhost:8000` (or `http://<your-php-server-ip>:8000`) in your web browser.
 
-#### Option B: Apache / Nginx / XAMPP / cPanel Hosting
-1. Copy the `project-tracker` folder to your web server document root (e.g. `/var/www/html/` or `htdocs/`).
-2. Ensure PDO MySQL extension is enabled in `php.ini`.
-3. Open `http://your-domain.com/project-tracker` in your browser.
+Open `http://localhost:8000` in your web browser.
 
----
+#### Option B: Apache / Nginx / cPanel / Shared Hosting
 
-## 📊 Dashboard Views & Features
-
-| View / Page | Key Functionality |
-| :--- | :--- |
-| **Executive Overview** (`index.php`) | High-level metrics, category pills, real-time search, interactive project cards, visual progress bars. |
-| **All Projects Directory** (`projects.php`) | Tabular directory of projects with inline progress bars, completion dates, and owner badges. |
-| **"What Finishes When"** (`timeline.php`) | Chronological roadmap grouping projects by target completion month (Overdue, This Month, Next Month, Future). |
-| **"Needs Attention" Center** (`attention.php`) | Isolates projects flagged with active blockers and lists open action items/pendings requiring management action. |
-| **Project Detail & Breakdown** (`project_detail.php`) | Full project breakdown, milestone checklist, progress slider update modal, and active pendings log. |
+1. Upload all project files to your server document root (e.g., `/var/www/html/project` or `public_html/project`).
+2. Ensure `pdo_mysql` is enabled in your `php.ini`.
+3. Access `http://your-domain.com/project/` in your browser.
 
 ---
 
-## 🔒 Remote MySQL Access Checklist
+## 📊 Dashboard Views & Modules
 
-If your MySQL server is on a separate remote machine, ensure:
-1. **Remote Port Access**: Port `3306` is open on the remote MySQL server firewall.
-2. **User Privileges**: The MySQL user has remote host privileges granted:
-   ```sql
-   GRANT ALL PRIVILEGES ON project_tracker.* TO 'db_username'@'%' IDENTIFIED BY 'db_password';
-   FLUSH PRIVILEGES;
-   ```
+| View / File | Description & Functionality |
+| --- | --- |
+| **Executive Overview** (`index.php`) | High-level metrics, BU & category filtering, real-time search, interactive project cards, and blocker alerts. |
+| **Daily Progress Workspace** (`daily_log.php`) | Single-page update workspace to log daily progress notes across projects and flag blockers instantly. |
+| **Weekly Status Report** (`weekly_report.php`) | Aggregates daily updates from the past 7 days grouped by **Business Unit → Project**, ready for print/PDF export. |
+| **All Projects Directory** (`projects.php`) | Tabular listing of projects with completion status, target completion dates, and project managers. |
+| **"What Finishes When"** (`timeline.php`) | Chronological roadmap grouping projects by target completion month. |
+| **"Needs Attention" Center** (`attention.php`) | Isolates projects flagged with active blockers and lists open action items requiring attention. |
+
+---
+
+## 🔒 Remote MySQL Troubleshooting Checklist
+
+If hosting the database remotely:
+
+1. **Firewall Access:** Ensure MySQL port `3306` is allowed on the remote database server.
+2. **User Privileges:** Verify the user account allows remote access (`'db_username'@'%'`).
+3. **Database Port Variable:** Ensure `DB_PORT` is correctly set in `config/database.php`.
+
+```
+
+```

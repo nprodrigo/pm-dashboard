@@ -60,6 +60,11 @@ $dbConnected = (getDBConnection() !== null);
     <i class="fa-solid fa-file-invoice"></i> Weekly Report
   </a>
 </li>
+<li class="nav-item">
+  <a href="daily_report.php" class="<?= $currentPage === 'daily_report.php' ? 'active' : '' ?>">
+    <i class="fa-solid fa-file-invoice"></i> Daily Report
+  </a>
+</li>
     </ul>
   </nav>
 
