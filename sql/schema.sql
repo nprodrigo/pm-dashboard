@@ -4,8 +4,8 @@
 -- Compatible with MySQL 5.7+ / MySQL 8.0+ / MariaDB
 -- =========================================================
 
-CREATE DATABASE IF NOT EXISTS `project_tracker` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `project_tracker`;
+CREATE DATABASE IF NOT EXISTS `learnitc_pm_dashboard` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `learnitc_pm_dashboard`;
 
 -- ---------------------------------------------------------
 -- Table: categories

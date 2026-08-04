@@ -55,6 +55,11 @@ $dbConnected = (getDBConnection() !== null);
           <?php endif; ?>
         </a>
       </li>
+      <li class="nav-item">
+  <a href="weekly_report.php" class="<?= $currentPage === 'weekly_report.php' ? 'active' : '' ?>">
+    <i class="fa-solid fa-file-invoice"></i> Weekly Report
+  </a>
+</li>
     </ul>
   </nav>
 

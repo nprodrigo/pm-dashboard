@@ -250,3 +250,68 @@ function getPriorityBadgeClass($priority) {
         default:         return 'priority-default';
     }
 }
+
+/**
+ * Get all Business Units
+ */
+function getBusinessUnits() {
+    $db = getDBConnection();
+    if (!$db) return [];
+    try {
+        return $db->query("SELECT * FROM business_units ORDER BY name ASC")->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+/**
+ * Add a daily log entry for a project
+ */
+function addDailyLog($projectId, $logText, $isBlocked = 0) {
+    $db = getDBConnection();
+    if (!$db) return false;
+
+    try {
+        $stmt = $db->prepare("INSERT INTO daily_logs (project_id, log_text, is_blocked) VALUES (:project_id, :log_text, :is_blocked)");
+        $stmt->execute([
+            'project_id' => $projectId,
+            'log_text'   => $logText,
+            'is_blocked' => $isBlocked
+        ]);
+
+        if ($isBlocked) {
+            $stmtAtt = $db->prepare("UPDATE projects SET needs_attention = 1, attention_reason = :reason WHERE id = :id");
+            $stmtAtt->execute(['reason' => $logText, 'id' => $projectId]);
+        }
+        return true;
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+/**
+ * Fetch daily updates logged over the last 7 days grouped by Business Unit
+ */
+function getWeeklyReportData() {
+    $db = getDBConnection();
+    if (!$db) return [];
+
+    $sql = "SELECT 
+                bu.name AS bu_name,
+                p.title AS project_title,
+                p.owner_name,
+                dl.log_text,
+                dl.is_blocked,
+                dl.created_at
+            FROM daily_logs dl
+            JOIN projects p ON dl.project_id = p.id
+            LEFT JOIN business_units bu ON p.bu_id = bu.id
+            WHERE dl.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            ORDER BY bu.name ASC, p.title ASC, dl.created_at DESC";
+
+    try {
+        return $db->query($sql)->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
+}

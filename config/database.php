@@ -1,13 +1,13 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 /**
  * Database Configuration & Connection
- * 
- * Configured for both local and remote MySQL servers.
- * Settings can be adjusted here or via Environment Variables / .env
  */
-
-define('DB_HOST', getenv('DB_HOST') ?: 'localhost'); // Remote server IP or hostname (e.g., '192.168.1.100' or 'db.yourdomain.com')
-//define('DB_PORT', getenv('DB_PORT') ?: '3306');
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_PORT', getenv('DB_PORT') ?: '3306');
 define('DB_NAME', getenv('DB_NAME') ?: 'learnitc_pm_dashboard');
 define('DB_USER', getenv('DB_USER') ?: 'learnitc_niroshan');
 define('DB_PASS', getenv('DB_PASS') ?: 'yXQmf2ShlyEUHnqY');
@@ -20,7 +20,7 @@ function getDBConnection() {
         $dsn = sprintf(
             "mysql:host=%s;port=%s;dbname=%s;charset=%s",
             DB_HOST,
-//            DB_PORT,
+            DB_PORT,
             DB_NAME,
             DB_CHARSET
         );
@@ -29,13 +29,12 @@ function getDBConnection() {
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
-            PDO::ATTR_TIMEOUT            => 5, // 5 seconds timeout for remote database connections
+            PDO::ATTR_TIMEOUT            => 5,
         ];
         
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            // Return null so the UI can gracefully render a Database Setup Warning message
             return null;
         }
     }
