@@ -61,7 +61,7 @@ $dbConnected = (getDBConnection() !== null);
   </a>
 </li>
 <li class="nav-item">
-  <a href="daily_report.php" class="<?= $currentPage === 'daily_report.php' ? 'active' : '' ?>">
+  <a href="daily_log.php" class="<?= $currentPage === 'daily_log.php' ? 'active' : '' ?>">
     <i class="fa-solid fa-file-invoice"></i> Daily Report
   </a>
 </li>
