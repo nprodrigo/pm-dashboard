@@ -6,11 +6,11 @@
  * Settings can be adjusted here or via Environment Variables / .env
  */
 
-define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1'); // Remote server IP or hostname (e.g., '192.168.1.100' or 'db.yourdomain.com')
-define('DB_PORT', getenv('DB_PORT') ?: '3306');
-define('DB_NAME', getenv('DB_NAME') ?: 'project_tracker');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-define('DB_PASS', getenv('DB_PASS') ?: '');
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost'); // Remote server IP or hostname (e.g., '192.168.1.100' or 'db.yourdomain.com')
+//define('DB_PORT', getenv('DB_PORT') ?: '3306');
+define('DB_NAME', getenv('DB_NAME') ?: 'learnitc_pm_dashboard');
+define('DB_USER', getenv('DB_USER') ?: 'learnitc_niroshan');
+define('DB_PASS', getenv('DB_PASS') ?: 'yXQmf2ShlyEUHnqY');
 define('DB_CHARSET', 'utf8mb4');
 
 function getDBConnection() {
@@ -20,7 +20,7 @@ function getDBConnection() {
         $dsn = sprintf(
             "mysql:host=%s;port=%s;dbname=%s;charset=%s",
             DB_HOST,
-            DB_PORT,
+//            DB_PORT,
             DB_NAME,
             DB_CHARSET
         );
