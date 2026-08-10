@@ -1,15 +1,27 @@
 /* ==========================================================================
-   ProjectPulse - Clean Dark Theme (Standard Universal Sans-Serif)
+   ProjectPulse - Fixed CSS (Preserves Font Awesome Icon Glyph Rendering)
    ========================================================================== */
 
-/* Universal Font Reset - Removed -apple-system & BlinkMacSystemFont */
-*, *::before, *::after {
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: Arial, Helvetica, "Segoe UI", Roboto, sans-serif !important;
-  text-transform: none !important; /* Disables all forced uppercase */
-  letter-spacing: normal !important;
+}
+
+/* Base Body & Text Typography */
+body, input, select, textarea, button, a, p, h1, h2, h3, h4, h5, h6, td, th {
+  font-family: Arial, Helvetica, "Segoe UI", Roboto, sans-serif;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Explicitly preserve Font Awesome Font Families */
+.fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular, .fa-brands, [class^="fa-"], [class*=" fa-"] {
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  line-height: 1;
 }
 
 :root {
@@ -58,9 +70,7 @@ a {
   text-decoration: none;
 }
 
-/* --------------------------------------------------------------------------
-   Header & Navbar
-   -------------------------------------------------------------------------- */
+/* Header & Navbar */
 .navbar {
   background: rgba(15, 23, 42, 0.9);
   backdrop-filter: var(--backdrop-blur);
@@ -146,9 +156,7 @@ a {
   background: var(--primary-hover);
 }
 
-/* --------------------------------------------------------------------------
-   Main Layout & Cards
-   -------------------------------------------------------------------------- */
+/* Main Layout & Cards */
 .main-container {
   max-width: 1400px;
   width: 100%;
