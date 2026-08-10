@@ -65,6 +65,11 @@ $dbConnected = (getDBConnection() !== null);
     <i class="fa-solid fa-pen-to-square"></i> Daily Report
   </a>
 </li>
+<li class="nav-item">
+  <a href="team.php" class="<?= $currentPage === 'team.php' ? 'active' : '' ?>">
+    <i class="fa-solid fa-users"></i> Team
+  </a>
+</li>
     </ul>
   </nav>
 

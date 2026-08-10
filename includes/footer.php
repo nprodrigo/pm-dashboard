@@ -34,10 +34,7 @@
           <label class="form-label">Business Unit (BU)</label>
           <select name="bu_id" class="form-select" style="width: 100%;">
             <option value="">Select BU...</option>
-            <?php 
-              $bus = getBusinessUnits();
-              foreach ($bus as $bu): 
-            ?>
+            <?php foreach (getBusinessUnits() as $bu): ?>
               <option value="<?= $bu['id'] ?>"><?= htmlspecialchars($bu['name']) ?> (<?= $bu['code'] ?>)</option>
             <?php endforeach; ?>
           </select>
@@ -46,8 +43,13 @@
 
       <div class="form-grid">
         <div class="form-group">
-          <label class="form-label">Project Owner / Manager</label>
-          <input type="text" name="owner_name" class="form-input" style="width: 100%;" placeholder="e.g. Sarah Jenkins" required>
+          <label class="form-label">Project Manager (PM)</label>
+          <select name="manager_id" class="form-select" style="width: 100%;">
+            <option value="">Select Project Manager...</option>
+            <?php foreach (getTeamMembers() as $tm): ?>
+              <option value="<?= $tm['id'] ?>"><?= htmlspecialchars($tm['full_name']) ?> (<?= htmlspecialchars($tm['role_title']) ?>)</option>
+            <?php endforeach; ?>
+          </select>
         </div>
 
         <div class="form-group">
@@ -56,26 +58,30 @@
         </div>
       </div>
 
+      <!-- Assign Project Team Members -->
       <div class="form-group">
-        <label class="form-label">Project Description</label>
-        <textarea name="description" class="form-input" style="width: 100%; height: 80px;" placeholder="Brief scope and objectives..."></textarea>
-      </div>
-
-      <div class="form-group" style="background: rgba(244, 63, 94, 0.08); padding: 1rem; border-radius: var(--radius-md); border: 1px solid rgba(244, 63, 94, 0.2);">
-        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #fecdd3;">
-          <input type="checkbox" name="needs_attention" value="1" onchange="document.getElementById('addAttentionReasonGroup').style.display = this.checked ? 'block' : 'none';">
-          Flag as "Needs Attention" / Blocked immediately
-        </label>
-        <div id="addAttentionReasonGroup" style="display: none; margin-top: 0.75rem;">
-          <input type="text" name="attention_reason" class="form-input" style="width: 100%;" placeholder="Describe the blocker or risk...">
+        <label class="form-label">Assign Project Team Members</label>
+        <div style="max-height: 120px; overflow-y: auto; background: var(--bg-input); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <?php foreach (getTeamMembers() as $tm): ?>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.4rem; cursor: pointer;">
+              <input type="checkbox" name="team_member_ids[]" value="<?= $tm['id'] ?>">
+              <?= htmlspecialchars($tm['full_name']) ?> <span style="color: var(--text-dim); font-size: 0.78rem;">(<?= htmlspecialchars($tm['role_title']) ?>)</span>
+            </label>
+          <?php endforeach; ?>
         </div>
       </div>
 
+      <div class="form-group">
+        <label class="form-label">Project Description</label>
+        <textarea name="description" class="form-input" style="width: 100%; height: 70px;" placeholder="Brief scope and objectives..."></textarea>
+      </div>
+
       <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
-        <button type="button" class="btn-primary-action" style="background: rgba(255,255,255,0.1); box-shadow: none;" onclick="closeModal('addProjectModal')">Cancel</button>
+        <button type="button" class="btn-primary-action" style="background: rgba(255,255,255,0.1);" onclick="closeModal('addProjectModal')">Cancel</button>
         <button type="submit" class="btn-primary-action">Save Project</button>
       </div>
     </form>
+
   </div>
 </div>
 

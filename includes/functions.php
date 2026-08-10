@@ -351,3 +351,75 @@ function getDailyReportData($targetDate = null) {
         return [];
     }
 }
+
+/**
+ * Fetch all team members
+ */
+function getTeamMembers() {
+    $db = getDBConnection();
+    if (!$db) return [];
+    try {
+        return $db->query("SELECT * FROM team_members ORDER BY full_name ASC")->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+/**
+ * Fetch team members assigned to a specific project
+ */
+function getProjectTeam($projectId) {
+    $db = getDBConnection();
+    if (!$db) return [];
+    try {
+        $stmt = $db->prepare("SELECT tm.* FROM team_members tm
+                              JOIN project_teams pt ON tm.id = pt.member_id
+                              WHERE pt.project_id = :pid
+                              ORDER BY tm.full_name ASC");
+        $stmt->execute(['pid' => $projectId]);
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+/**
+ * Assign a list of team members to a project
+ */
+function updateProjectTeam($projectId, $memberIds = []) {
+    $db = getDBConnection();
+    if (!$db) return false;
+    try {
+        $stmt = $db->prepare("DELETE FROM project_teams WHERE project_id = :pid");
+        $stmt->execute(['pid' => $projectId]);
+
+        if (!empty($memberIds)) {
+            $insertStmt = $db->prepare("INSERT INTO project_teams (project_id, member_id) VALUES (:pid, :mid)");
+            foreach ($memberIds as $mId) {
+                $insertStmt->execute(['pid' => $projectId, 'mid' => (int)$mId]);
+            }
+        }
+        return true;
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+/**
+ * Fetch tasks for a project with assignee details
+ */
+function getProjectTasks($projectId) {
+    $db = getDBConnection();
+    if (!$db) return [];
+    try {
+        $stmt = $db->prepare("SELECT t.*, tm.full_name as assignee_name 
+                              FROM tasks t 
+                              LEFT JOIN team_members tm ON t.assigned_to = tm.id 
+                              WHERE t.project_id = :pid 
+                              ORDER BY FIELD(t.priority, 'Critical', 'High', 'Medium', 'Low'), t.due_date ASC");
+        $stmt->execute(['pid' => $projectId]);
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
+}

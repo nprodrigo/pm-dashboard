@@ -364,4 +364,113 @@ $priorityClass = getPriorityBadgeClass($project['priority']);
       <?php endif; ?>
     </div>
 
+    <!-- Panel: Project Team Members -->
+<div class="panel-card" style="margin-top: 1.5rem;">
+  <div class="panel-title">
+    <span>Project Team Allocation</span>
+  </div>
+  
+  <?php 
+    $projectTeam = getProjectTeam($project['id']);
+  ?>
+  <?php if (empty($projectTeam)): ?>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">No team members assigned to this project team yet.</p>
+  <?php else: ?>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <?php foreach ($projectTeam as $tm): ?>
+        <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-color); padding: 0.5rem 0.85rem; border-radius: var(--radius-md); display: flex; align-items: center; gap: 0.5rem;">
+          <div class="owner-avatar" style="width: 22px; height: 22px; font-size: 0.65rem;">
+            <?= strtoupper(substr($tm['full_name'], 0, 1)) ?>
+          </div>
+          <span style="font-size: 0.85rem; color: #fff; font-weight: 500;"><?= htmlspecialchars($tm['full_name']) ?></span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">(<?= htmlspecialchars($tm['role_title']) ?>)</span>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+</div>
+
+<!-- Panel: Tasks List -->
+<div class="panel-card" style="margin-top: 1.5rem;">
+  <div class="panel-title">
+    <span>Project Tasks</span>
+    <button class="btn-primary-action" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="openModal('addTaskModal')">
+      + Create Task
+    </button>
+  </div>
+
+  <?php 
+    $tasks = getProjectTasks($project['id']);
+  ?>
+  <?php if (empty($tasks)): ?>
+    <p style="color: var(--text-muted); font-size: 0.88rem;">No tasks created for this project yet.</p>
+  <?php else: ?>
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <?php foreach ($tasks as $task): ?>
+        <div style="padding: 0.75rem 1rem; background: rgba(15, 23, 42, 0.4); border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 600; color: #fff; font-size: 0.92rem;"><?= htmlspecialchars($task['title']) ?></div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">
+              Assignee: <strong><?= htmlspecialchars($task['assignee_name'] ?: 'Unassigned') ?></strong> &bull; Due: <?= date('M d, Y', strtotime($task['due_date'])) ?>
+            </div>
+          </div>
+          <span class="badge <?= getPriorityBadgeClass($task['priority']) ?>"><?= $task['priority'] ?></span>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+</div>
+
+<!-- Modal: Create Task -->
+<div class="modal-overlay" id="addTaskModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 style="font-size: 1.2rem; font-weight: 700; color: #fff;">Create Project Task</h3>
+      <button class="modal-close" onclick="closeModal('addTaskModal')">&times;</button>
+    </div>
+
+    <form action="api.php" method="POST">
+      <input type="hidden" name="action" value="create_task">
+      <input type="hidden" name="project_id" value="<?= $project['id'] ?>">
+
+      <div class="form-group">
+        <label class="form-label">Task Title</label>
+        <input type="text" name="title" class="form-input" style="width: 100%;" placeholder="e.g. Prepare staging environment" required>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Assign To (Project Team)</label>
+          <select name="assigned_to" class="form-select" style="width: 100%;">
+            <option value="">Unassigned</option>
+            <?php foreach ($projectTeam as $tm): ?>
+              <option value="<?= $tm['id'] ?>"><?= htmlspecialchars($tm['full_name']) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select name="priority" class="form-select" style="width: 100%;">
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Target Due Date</label>
+        <input type="date" name="due_date" class="form-input" style="width: 100%;" value="<?= date('Y-m-d', strtotime('+7 days')) ?>" required>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button type="button" class="btn-primary-action" style="background: rgba(255,255,255,0.1);" onclick="closeModal('addTaskModal')">Cancel</button>
+        <button type="submit" class="btn-primary-action">Save Task</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
