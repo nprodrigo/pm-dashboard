@@ -1,4 +1,12 @@
 <?php
+session_start();
+
+// Authentication Guard: Redirect unauthenticated users
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
 require_once __DIR__ . '/functions.php';
 
 $currentPage = basename($_SERVER['PHP_SELF']);
@@ -44,39 +52,39 @@ $dbConnected = (getDBConnection() !== null);
       </li>
       <li class="nav-item">
         <a href="timeline.php" class="<?= $currentPage === 'timeline.php' ? 'active' : '' ?>">
-          <i class="fa-solid fa-calendar-days"></i> "What Finishes When"
+          <i class="fa-solid fa-calendar-days"></i> Timeline
         </a>
       </li>
       <li class="nav-item">
         <a href="attention.php" class="<?= $currentPage === 'attention.php' ? 'active' : '' ?>">
           <i class="fa-solid fa-triangle-exclamation"></i> Needs Attention
-          <?php if ($metrics['attention_needed'] > 0): ?>
-            <span class="badge badge-danger" style="margin-left: 0.2rem; padding: 0.15rem 0.4rem; font-size: 0.7rem;"><?= $metrics['attention_needed'] ?></span>
-          <?php endif; ?>
         </a>
       </li>
       <li class="nav-item">
-  <a href="weekly_report.php" class="<?= $currentPage === 'weekly_report.php' ? 'active' : '' ?>">
-    <i class="fa-solid fa-file-invoice"></i> Weekly Report
-  </a>
-</li>
-<li class="nav-item">
-  <a href="daily_report.php" class="<?= $currentPage === 'daily_report.php' ? 'active' : '' ?>">
-    <i class="fa-solid fa-pen-to-square"></i> Daily Report
-  </a>
-</li>
-<li class="nav-item">
-  <a href="team.php" class="<?= $currentPage === 'team.php' ? 'active' : '' ?>">
-    <i class="fa-solid fa-users"></i> Team
-  </a>
-</li>
+        <a href="weekly_report.php" class="<?= $currentPage === 'weekly_report.php' ? 'active' : '' ?>">
+          <i class="fa-solid fa-file-invoice"></i> Weekly Report
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="daily_report.php" class="<?= $currentPage === 'daily_report.php' ? 'active' : '' ?>">
+          <i class="fa-solid fa-pen-to-square"></i> Daily Report
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="team.php" class="<?= $currentPage === 'team.php' ? 'active' : '' ?>">
+          <i class="fa-solid fa-users"></i> Team
+        </a>
+      </li>
     </ul>
   </nav>
 
-  <div>
-    <button class="btn-primary-action" onclick="openModal('addProjectModal')">
-      <i class="fa-solid fa-plus"></i> New Project
-    </button>
+  <div style="display: flex; align-items: center; gap: 1rem;">
+    <span style="font-size: 0.85rem; color: var(--text-muted);">
+      <i class="fa-solid fa-circle-user" style="color: var(--primary);"></i> <?= htmlspecialchars($_SESSION['full_name']) ?>
+    </span>
+    <a href="logout.php" class="btn-primary-action" style="background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); padding: 0.4rem 0.85rem;">
+      <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </a>
   </div>
 </header>
 
