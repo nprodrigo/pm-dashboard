@@ -13,19 +13,19 @@ $dbConnected = (getDBConnection() !== null);
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Project Executive Tracker | Progress & Pendings Dashboard</title>
   
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- FontAwesome 6 Free Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
-  <!-- Custom Glassmorphic Stylesheet -->
+  <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
-<!-- Sticky Header & Navbar -->
+<!-- Header & Navbar -->
 <header class="navbar">
   <a href="index.php" class="brand">
     <div class="brand-icon">
-      <i class="fa-solid fa-chart-line">
+      <i class="fa-solid fa-chart-line"></i>
     </div>
     <span>ProjectPulse Tracker</span>
   </a>
@@ -34,7 +34,7 @@ $dbConnected = (getDBConnection() !== null);
     <ul class="nav-links">
       <li class="nav-item">
         <a href="index.php" class="<?= $currentPage === 'index.php' ? 'active' : '' ?>">
-          <i class="fa-solid fa-grid-2"></i> Overview
+          <i class="fa-solid fa-table-cells"></i> Overview
         </a>
       </li>
       <li class="nav-item">
@@ -56,15 +56,15 @@ $dbConnected = (getDBConnection() !== null);
         </a>
       </li>
       <li class="nav-item">
-  <a href="weekly_report.php" class="<?= $currentPage === 'weekly_report.php' ? 'active' : '' ?>">
-    <i class="fa-solid fa-file-invoice"></i> Weekly Report
-  </a>
-</li>
-<li class="nav-item">
-  <a href="daily_log.php" class="<?= $currentPage === 'daily_log.php' ? 'active' : '' ?>">
-    <i class="fa-solid fa-file-invoice"></i> Daily Report
-  </a>
-</li>
+        <a href="weekly_report.php" class="<?= $currentPage === 'weekly_report.php' ? 'active' : '' ?>">
+          <i class="fa-solid fa-file-invoice"></i> Weekly Report
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="daily_log.php" class="<?= $currentPage === 'daily_log.php' ? 'active' : '' ?>">
+          <i class="fa-solid fa-pen-to-square"></i> Daily Report
+        </a>
+      </li>
     </ul>
   </nav>
 
