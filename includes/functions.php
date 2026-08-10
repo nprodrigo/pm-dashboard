@@ -315,3 +315,39 @@ function getWeeklyReportData() {
         return [];
     }
 }
+
+/**
+ * Fetch daily updates logged for a specific date (defaults to today)
+ */
+function getDailyReportData($targetDate = null) {
+    $db = getDBConnection();
+    if (!$db) return [];
+
+    if (!$targetDate) {
+        $targetDate = date('Y-m-d');
+    }
+
+    $sql = "SELECT 
+                bu.name AS bu_name,
+                p.id AS project_id,
+                p.title AS project_title,
+                p.owner_name,
+                p.status AS project_status,
+                dl.id AS log_id,
+                dl.log_text,
+                dl.is_blocked,
+                dl.created_at
+            FROM daily_logs dl
+            JOIN projects p ON dl.project_id = p.id
+            LEFT JOIN business_units bu ON p.bu_id = bu.id
+            WHERE DATE(dl.created_at) = :targetDate
+            ORDER BY bu.name ASC, p.title ASC, dl.created_at DESC";
+
+    try {
+        $stmt = $db->prepare($sql);
+        $stmt->execute(['targetDate' => $targetDate]);
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
+}

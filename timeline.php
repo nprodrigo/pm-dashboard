@@ -3,8 +3,9 @@ require_once __DIR__ . '/includes/header.php';
 
 $projects = getProjects();
 $selectedProjectId = isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
+$viewMode = isset($_GET['mode']) && $_GET['mode'] === 'detailed' ? 'detailed' : 'summary';
 
-// Filter for single project if selected
+// Filter single project if selected
 if ($selectedProjectId > 0) {
     $filteredProjects = array_filter($projects, function($p) use ($selectedProjectId) {
         return (int)$p['id'] === $selectedProjectId;
@@ -13,29 +14,31 @@ if ($selectedProjectId > 0) {
     $filteredProjects = $projects;
 }
 
-// Calculate Timeline Date Range (Past 3 months to Next 6 months)
-$startTimestamp = strtotime('-2 months');
-$endTimestamp   = strtotime('+6 months');
+// Calculate Timeline Date Range: 2 weeks ago to 12 weeks ahead (Monday-aligned)
+$mondayThisWeek = strtotime('monday this week');
+$startTimestamp = strtotime('-2 weeks', $mondayThisWeek);
+$endTimestamp   = strtotime('+12 weeks', $mondayThisWeek);
 
-// Generate Months Headers
-$months = [];
-$current = strtotime(date('Y-m-01', $startTimestamp));
-$last = strtotime(date('Y-m-01', $endTimestamp));
+// Generate Weekly Columns
+$weeks = [];
+$currentWeek = $startTimestamp;
 
-while ($current <= $last) {
-    $months[] = [
-        'key'   => date('Y-m', $current),
-        'label' => date('M Y', $current),
-        'ts'    => $current
+while ($currentWeek < $endTimestamp) {
+    $weeks[] = [
+        'week_num' => date('W', $currentWeek),
+        'label'    => 'W' . date('W', $currentWeek),
+        'sublabel' => date('M d', $currentWeek),
+        'start_ts' => $currentWeek,
+        'end_ts'   => strtotime('+6 days 23:59:59', $currentWeek)
     ];
-    $current = strtotime('+1 month', $current);
+    $currentWeek = strtotime('+1 week', $currentWeek);
 }
 
 $totalTimelineDays = max(1, ($endTimestamp - $startTimestamp) / 86400);
 ?>
 
 <style>
-/* Interactive Timeline Styles */
+/* Weekly Gantt Timeline Styles */
 .timeline-card {
   background: var(--bg-card);
   backdrop-filter: var(--backdrop-blur);
@@ -45,13 +48,38 @@ $totalTimelineDays = max(1, ($endTimestamp - $startTimestamp) / 86400);
   margin-bottom: 2rem;
 }
 
-.timeline-filter-bar {
+.timeline-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 1.5rem;
+}
+
+.mode-toggle-group {
+  display: flex;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 3px;
+}
+
+.mode-toggle-btn {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: var(--transition);
+}
+
+.mode-toggle-btn.active {
+  background: var(--primary);
+  color: #ffffff;
 }
 
 .timeline-grid-container {
@@ -64,59 +92,71 @@ $totalTimelineDays = max(1, ($endTimestamp - $startTimestamp) / 86400);
 .timeline-header-row {
   display: flex;
   border-bottom: 1px solid var(--border-color);
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(15, 23, 42, 0.85);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .timeline-project-col {
-  width: 260px;
-  min-width: 260px;
+  width: 280px;
+  min-width: 280px;
   padding: 0.85rem 1rem;
   font-weight: 600;
   font-size: 0.85rem;
   color: var(--text-muted);
   border-right: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.95);
 }
 
-.timeline-months-col {
+.timeline-weeks-col {
   display: flex;
   flex: 1;
-  min-width: 700px;
+  min-width: 840px;
 }
 
-.timeline-month-cell {
+.timeline-week-cell {
   flex: 1;
   text-align: center;
-  padding: 0.85rem 0.5rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  padding: 0.6rem 0.25rem;
   border-right: 1px solid var(--border-color);
 }
 
-.timeline-month-cell:last-child {
-  border-right: none;
+.timeline-week-cell .week-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.timeline-week-cell .week-date {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.timeline-week-cell.current-week {
+  background: rgba(99, 102, 241, 0.12);
 }
 
 .timeline-row {
   display: flex;
   border-bottom: 1px solid var(--border-color);
   align-items: center;
-  transition: var(--transition);
 }
 
-.timeline-row:last-child {
-  border-bottom: none;
+.timeline-row.project-master-row {
+  background: rgba(30, 41, 59, 0.5);
 }
 
-.timeline-row:hover {
-  background: rgba(255, 255, 255, 0.02);
+.timeline-row.sub-item-row {
+  background: rgba(15, 23, 42, 0.25);
+  font-size: 0.82rem;
 }
 
 .timeline-track-cell {
   flex: 1;
-  min-width: 700px;
+  min-width: 840px;
   position: relative;
-  height: 52px;
+  height: 48px;
   display: flex;
   align-items: center;
 }
@@ -134,70 +174,112 @@ $totalTimelineDays = max(1, ($endTimestamp - $startTimestamp) / 86400);
   color: #ffffff;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  transition: opacity 0.2s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.timeline-bar:hover {
-  opacity: 0.9;
+.timeline-marker {
+  position: absolute;
+  height: 20px;
+  padding: 0 0.5rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.marker-milestone {
+  background: rgba(6, 182, 212, 0.2);
+  color: #67e8f9;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+}
+
+.marker-milestone.completed {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.marker-pending {
+  background: rgba(244, 63, 94, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(244, 63, 94, 0.4);
 }
 </style>
 
 <div class="timeline-card">
-  <!-- Top Control Filter Bar -->
-  <div class="timeline-filter-bar">
+  <!-- Control Header Bar -->
+  <div class="timeline-controls">
     <div>
       <h2 style="font-size: 1.4rem; font-weight: 700; color: #ffffff;">
         <i class="fa-solid fa-calendar-days"></i> Project Completion Timeline
       </h2>
       <p style="color: var(--text-muted); font-size: 0.85rem;">
-        Visual schedule of start and target completion dates across active initiatives.
+        Weekly roadmap with week number breakdown and single/detailed view toggle[cite: 14].
       </p>
     </div>
 
-    <form method="GET" action="timeline.php" style="display: flex; gap: 0.75rem; align-items: center;">
-      <label for="project_id" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Filter View:</label>
-      <select name="project_id" id="project_id" class="form-select" onchange="this.form.submit()">
-        <option value="0">All Projects (Overview)</option>
-        <?php foreach ($projects as $p): ?>
-          <option value="<?= $p['id'] ?>" <?= $selectedProjectId === (int)$p['id'] ? 'selected' : '' ?>>
-            <?= htmlspecialchars($p['title']) ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
-      
-      <?php if ($selectedProjectId > 0): ?>
-        <a href="timeline.php" class="btn-primary-action" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; background: rgba(255,255,255,0.1);">
-          Reset
+    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+      <!-- Mode Toggle: Summary vs Detailed -->
+      <div class="mode-toggle-group">
+        <a href="timeline.php?project_id=<?= $selectedProjectId ?>&mode=summary" 
+           class="mode-toggle-btn <?= $viewMode === 'summary' ? 'active' : '' ?>">
+          <i class="fa-solid fa-bars"></i> Summary Format
         </a>
-      <?php endif; ?>
-    </form>
+        <a href="timeline.php?project_id=<?= $selectedProjectId ?>&mode=detailed" 
+           class="mode-toggle-btn <?= $viewMode === 'detailed' ? 'active' : '' ?>">
+          <i class="fa-solid fa-list-check"></i> Detailed Format
+        </a>
+      </div>
+
+      <!-- Single Project Filter -->
+      <form method="GET" action="timeline.php" style="display: flex; gap: 0.5rem; align-items: center;">
+        <input type="hidden" name="mode" value="<?= $viewMode ?>">
+        <select name="project_id" class="form-select" onchange="this.form.submit()">
+          <option value="0">All Projects Overview</option>
+          <?php foreach ($projects as $p): ?>
+            <option value="<?= $p['id'] ?>" <?= $selectedProjectId === (int)$p['id'] ? 'selected' : '' ?>>
+              <?= htmlspecialchars($p['title']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </form>
+    </div>
   </div>
 
-  <!-- Interactive Timeline Grid -->
+  <!-- Gantt Grid -->
   <div class="timeline-grid-container">
-    <!-- Header Row -->
+    <!-- Header Row: Week Numbers -->
     <div class="timeline-header-row">
-      <div class="timeline-project-col">Project Title</div>
-      <div class="timeline-months-col">
-        <?php foreach ($months as $m): ?>
-          <div class="timeline-month-cell"><?= $m['label'] ?></div>
+      <div class="timeline-project-col">
+        <?= $viewMode === 'detailed' ? 'Project / Deliverable Breakdown' : 'Project Title' ?>
+      </div>
+      <div class="timeline-weeks-col">
+        <?php foreach ($weeks as $w): ?>
+          <?php $isCurrent = (date('W') === $w['week_num']); ?>
+          <div class="timeline-week-cell <?= $isCurrent ? 'current-week' : '' ?>">
+            <div class="week-title"><?= $w['label'] ?></div>
+            <div class="week-date"><?= $w['sublabel'] ?></div>
+          </div>
         <?php endforeach; ?>
       </div>
     </div>
 
-    <!-- Rows per Project -->
+    <!-- Rows Rendering -->
     <?php if (empty($filteredProjects)): ?>
       <div style="padding: 3rem; text-align: center; color: var(--text-muted);">
-        No matching projects found for this timeline view.
+        No matching projects found for this view[cite: 13, 14].
       </div>
     <?php else: ?>
       <?php foreach ($filteredProjects as $project): ?>
         <?php
-          // Calculate start & target offsets for bar positioning
+          // Main Project Bar Coordinates
           $pStart = strtotime($project['start_date']);
           $pEnd   = strtotime($project['target_completion_date']);
 
-          // Clamp values to timeline view limits
           $pStartClamped = max($startTimestamp, $pStart);
           $pEndClamped   = min($endTimestamp, $pEnd);
 
@@ -206,27 +288,80 @@ $totalTimelineDays = max(1, ($endTimestamp - $startTimestamp) / 86400);
 
           $leftPercent  = ($startOffsetDays / $totalTimelineDays) * 100;
           $widthPercent = ($durationDays / $totalTimelineDays) * 100;
-
-          // Status Badge Class
-          $statusClass = getStatusBadgeClass($project['status']);
         ?>
-        <div class="timeline-row">
+
+        <!-- Project Main Row -->
+        <div class="timeline-row project-master-row">
           <div class="timeline-project-col">
-            <a href="project_detail.php?id=<?= $project['id'] ?>" style="color: var(--text-main); font-size: 0.9rem; font-weight: 600;">
+            <a href="project_detail.php?id=<?= $project['id'] ?>" style="color: #ffffff; font-weight: 600;">
               <?= htmlspecialchars($project['title']) ?>
             </a>
             <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">
-              Lead: <?= htmlspecialchars($project['owner_name']) ?>
+              Owner: <?= htmlspecialchars($project['owner_name']) ?> &bull; <?= $project['status'] ?>[cite: 13, 14]
             </div>
           </div>
 
           <div class="timeline-track-cell">
             <div class="timeline-bar" 
                  style="left: <?= number_format($leftPercent, 2) ?>%; width: <?= number_format($widthPercent, 2) ?>%; background: <?= $project['status'] === 'Needs Attention' ? 'var(--accent-rose)' : 'var(--primary)' ?>;">
-              <?= $project['progress_percent'] ?>% Completed &bull; Target: <?= date('M d', strtotime($project['target_completion_date'])) ?>
+              <?= $project['progress_percent'] ?>% Completed &bull; Due: <?= date('M d', strtotime($project['target_completion_date'])) ?>[cite: 13, 14]
             </div>
           </div>
         </div>
+
+        <!-- Detailed Mode Rows: Sub-Items (Milestones & Pendings) -->
+        <?php if ($viewMode === 'detailed'): ?>
+          <?php 
+            $milestones = getMilestones($project['id']);
+            $pendings   = getPendings($project['id'], true);
+          ?>
+
+          <!-- Milestones Rows -->
+          <?php foreach ($milestones as $m): ?>
+            <?php
+              $mTs = strtotime($m['due_date']);
+              if ($mTs < $startTimestamp || $mTs > $endTimestamp) continue;
+
+              $mOffset = max(0, ($mTs - $startTimestamp) / 86400);
+              $mLeft = ($mOffset / $totalTimelineDays) * 100;
+              $isComp = ($m['status'] === 'Completed');
+            ?>
+            <div class="timeline-row sub-item-row">
+              <div class="timeline-project-col" style="padding-left: 2rem; color: var(--text-muted);">
+                <i class="fa-regular <?= $isComp ? 'fa-circle-check' : 'fa-flag' ?>" style="color: <?= $isComp ? 'var(--accent-emerald)' : 'var(--accent-cyan)' ?>;"></i>
+                <?= htmlspecialchars($m['title']) ?>[cite: 3]
+              </div>
+              <div class="timeline-track-cell">
+                <div class="timeline-marker <?= $isComp ? 'marker-milestone completed' : 'marker-milestone' ?>" style="left: <?= number_format($mLeft, 2) ?>%;">
+                  <i class="fa-solid fa-flag"></i> Due: <?= date('M d', $mTs) ?>
+                </div>
+              </div>
+            </div>
+          <?php endforeach; ?>
+
+          <!-- Pending Action Items Rows -->
+          <?php foreach ($pendings as $pend): ?>
+            <?php
+              if (empty($pend['due_date'])) continue;
+              $pTs = strtotime($pend['due_date']);
+              if ($pTs < $startTimestamp || $pTs > $endTimestamp) continue;
+
+              $pOffset = max(0, ($pTs - $startTimestamp) / 86400);
+              $pLeft = ($pOffset / $totalTimelineDays) * 100;
+            ?>
+            <div class="timeline-row sub-item-row">
+              <div class="timeline-project-col" style="padding-left: 2rem; color: #fca5a5;">
+                <i class="fa-solid fa-triangle-exclamation"></i> <?= htmlspecialchars($pend['title']) ?>[cite: 3]
+              </div>
+              <div class="timeline-track-cell">
+                <div class="timeline-marker marker-pending" style="left: <?= number_format($pLeft, 2) ?>%;">
+                  <i class="fa-solid fa-clock"></i> Blocker: <?= date('M d', $pTs) ?>
+                </div>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        <?php endif; ?>
+
       <?php endforeach; ?>
     <?php endif; ?>
   </div>

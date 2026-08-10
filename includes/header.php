@@ -56,15 +56,15 @@ $dbConnected = (getDBConnection() !== null);
         </a>
       </li>
       <li class="nav-item">
-        <a href="weekly_report.php" class="<?= $currentPage === 'weekly_report.php' ? 'active' : '' ?>">
-          <i class="fa-solid fa-file-invoice"></i> Weekly Report
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="daily_log.php" class="<?= $currentPage === 'daily_log.php' ? 'active' : '' ?>">
-          <i class="fa-solid fa-pen-to-square"></i> Daily Report
-        </a>
-      </li>
+  <a href="weekly_report.php" class="<?= $currentPage === 'weekly_report.php' ? 'active' : '' ?>">
+    <i class="fa-solid fa-file-invoice"></i> Weekly Report
+  </a>
+</li>
+<li class="nav-item">
+  <a href="daily_report.php" class="<?= $currentPage === 'daily_report.php' ? 'active' : '' ?>">
+    <i class="fa-solid fa-pen-to-square"></i> Daily Report
+  </a>
+</li>
     </ul>
   </nav>
 
